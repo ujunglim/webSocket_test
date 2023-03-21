@@ -1,5 +1,21 @@
-extends ./layout.pug
-block title 
-  title          
-block content 
-  div This is home page
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        link(rel="stylesheet", href="https://unpkg.com/mvp.css")
+    body
+        header
+            h1 YOOM
+        main
+            h2 Welcome to Yoom
+            ul
+            form#nickname
+              input(type="text", placeholder="Type your nickname" required)
+              button Save
+            form#msg
+              input(type="text", placeholder="Type a message", required)
+              button Send
+        footer Copyright Yujung. All right reserved.
+        script(src="../public/app.js")
