@@ -23,6 +23,11 @@ const addMessage = (message) => {
   msgList.appendChild(li);
 }
 
+const renderTitle = (count) => {
+  const roomTitle = document.querySelector('#roomTitle');
+  roomTitle.innerText = `Room${roomName} (${count})`
+}
+
 // ================= HANDLER ====================
 const handleRoomSubmit = (e) => {
   e.preventDefault();
@@ -53,12 +58,12 @@ const handleMsgSubmit = (e) => {
 
 // ================= EVENT LISTENERS ====================
 socket.on('welcome', (user, count) => {
-  const roomTitle = document.querySelector('#roomTitle');
-  roomTitle.innerText = `Room${roomName} (${count})`
+  renderTitle(count);
   addMessage(`${user} joined!`);
 })
 
-socket.on('bye', (user) => {
+socket.on('bye', (user, count) => {
+  renderTitle(count);
   addMessage(`${user} left T T`)
 })
 

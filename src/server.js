@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
-import SocketIO from 'socket.io';
+import {Server} from 'socket.io';
+import { instrument } from '@socket.io/admin-ui';
 
 const app = express();
 
@@ -11,7 +12,18 @@ app.get('/', (_, res) => res.render('home'));
 app.get('/*', (_, res) => res.redirect('/'));
 
 const httpServer = http.createServer(app); // express app으로부터 http서버생성
-const io = SocketIO(httpServer);
+// const io = SocketIO(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"], // 이 url에서 로컬호스트에 엑세스
+    credentials: true
+  }
+});
+
+instrument(io, {
+  auth: false,
+  mode: "development",
+});
 
 // get named-rooms
 const getPublicRooms = () => {
@@ -41,7 +53,7 @@ io.on('connection', (socket) => {
   })
   // before disconnect
   socket.on('disconnecting', () => {
-    socket.rooms.forEach(room => io.to(room).emit('bye', socket.nickname)); // 이 소켓이 있는 모든 방에 bye
+    socket.rooms.forEach(room => io.to(room).emit('bye', socket.nickname, countRoom(room) - 1)); // 이 소켓이 있는 모든 방에 bye
   })
   // disconnected
   socket.on('disconnect', () => {
