@@ -13,8 +13,11 @@ html(lang="en")
                 input(placeholder="room name", required, type="text")
                 button Enter Room
             #room 
-                h3
-                ul
+                #roomListDiv
+                    h4 Opened Rooms:
+                    ul
+                h3#roomTitle
+                ul#msgList
                 form#nickname
                     input(type="text" placeholder="Type your nickname" required)
                     button Save

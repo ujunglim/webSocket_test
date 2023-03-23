@@ -2,7 +2,7 @@ const socket = io(); // io함수는 자동으로 연결된 socket을 추가한�
 
 const welcomeForm = document.querySelector('#welcome');
 const roomDiv = document.querySelector('#room');
-
+const roomListDiv = document.querySelector('#roomListDiv');
 const msgList = document.querySelector('ul');
 const nicknameForm = document.querySelector('#nickname');
 const msgForm = document.querySelector('#msg');
@@ -14,17 +14,13 @@ roomDiv.hidden = true;
 const showRoom = () => {
   roomDiv.hidden = false;
   welcomeForm.hidden = true;
-
-  // add room title
-  const h3 = document.querySelector('h3');
-  h3.innerText = `Room ${roomName}`;
 }
 
 const addMessage = (message) => {
-  const ul = roomDiv.querySelector('ul');
+  const msgList = roomDiv.querySelector('#msgList');
   const li = document.createElement('li');
   li.innerText = message;
-  ul.appendChild(li);
+  msgList.appendChild(li);
 }
 
 // ================= HANDLER ====================
@@ -56,8 +52,10 @@ const handleMsgSubmit = (e) => {
 }
 
 // ================= EVENT LISTENERS ====================
-socket.on('welcome', () => {
-  addMessage('someone joined!')
+socket.on('welcome', (user, count) => {
+  const roomTitle = document.querySelector('#roomTitle');
+  roomTitle.innerText = `Room${roomName} (${count})`
+  addMessage(`${user} joined!`);
 })
 
 socket.on('bye', (user) => {
@@ -66,6 +64,19 @@ socket.on('bye', (user) => {
 
 socket.on('new_msg', (msg) => {
   addMessage(msg);
+})
+
+socket.on('room_change', (rooms) => {
+  const roomList = roomListDiv.querySelector('ul');
+  roomList.innerHTML = '';
+  if(rooms.length === 0) {
+    return;
+  }
+  rooms.forEach(room => {
+    const li = document.createElement('li');
+    li.innerText = room;
+    roomList.appendChild(li);
+  })
 })
 
 welcomeForm.addEventListener('submit', handleRoomSubmit);
