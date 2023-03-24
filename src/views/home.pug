@@ -2,20 +2,17 @@ doctype html
 html(lang="en")
     head
         meta(charset="UTF-8")
-        meta(http-equiv="X-UA-Compatible", content="IE=edge")
-        meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        link(rel="stylesheet", href="https://unpkg.com/mvp.css")
+        meta(http-equiv="X-UA-Compatible" content="IE=edge")
+        meta(name="viewport" content="width=device-width, initial-scale=1.0")
+        link(rel="stylesheet" href="https://unpkg.com/mvp.css")
     body
         header
             h1 YOOM
         main
-            h2 Welcome to Yoom
-            ul
-            form#nickname
-              input(type="text", placeholder="Type your nickname" required)
-              button Save
-            form#msg
-              input(type="text", placeholder="Type a message", required)
-              button Send
+            video#video(autoplay, playsinline, width="40" height="40") 
+            button#mute Mute
+            button#camera Turn camera off
+            select#cameraSelect
         footer Copyright Yujung. All right reserved.
+        script(src="/socket.io/socket.io.js")
         script(src="../public/app.js")
