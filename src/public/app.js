@@ -91,7 +91,7 @@ const callDiv = document.getElementById('call');
 
 callDiv.hidden = true;
 
-async function startMedia() {
+async function initCall() {
   welcomeForm.hidden = true;
   callDiv.hidden = false;
   // get video, audio
@@ -99,10 +99,11 @@ async function startMedia() {
   makeConnection();
 }
 
-const handleWelcomeSubmit = (e) => {
+const handleWelcomeSubmit = async (e) => {
   e.preventDefault();
   const input = welcomeForm.querySelector('input');
-  socket.emit('join_room', input.value, startMedia);
+  await initCall(); // webRTC 연결속도가 myPeerConnection를 만드는거보다 빨라서 미리 myPeerConnection를 만들어준다 
+  socket.emit('join_room', input.value);
   currRoomName = input.value;
   input.value = '';
 }
@@ -110,15 +111,26 @@ const handleWelcomeSubmit = (e) => {
 welcomeForm.addEventListener('submit', handleWelcomeSubmit);
 
 // ============== Socket code ==============
+// broswer1
 socket.on('welcome', async () => {
   const offer =  await myPeerConnection.createOffer(); // 다른 브라우저를 초대하는 초대장 만들기
-  myPeerConnection.setLocalDescription(offer) // 만든 초대장으로 연결하기
+  await myPeerConnection.setLocalDescription(offer) // 만든 초대장으로 연결하기
   socket.emit('offer', offer, currRoomName)// 다른 브라우저에 초대장 보내기 (socketio한테 어떤방이 이 offer를 emit하는지, 누구한테 이 offer를 보낼건지 알려줘야함)
 })
 
-// recieve ofer
-socket.on('offer', offer => {
-  console.log(offer)
+// broswer2
+// recieve offer
+socket.on('offer', async (offer) => {
+  // set remote offer
+  await myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  await myPeerConnection.setLocalDescription(answer) // 만든 초대장으로 연결하기
+  socket.emit('answer', answer, roomName)
+})
+
+// broswer1
+socket.on('answer', answer => {
+  await myPeerConnection.setRemoteDescription(answer);
 })
 
 // ============== RTC code ==============
