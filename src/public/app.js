@@ -1,89 +1,65 @@
 const socket = io(); // io함수는 자동으로 연결된 socket을 추가한다.
 
-const welcomeForm = document.querySelector('#welcome');
-const roomDiv = document.querySelector('#room');
-const roomListDiv = document.querySelector('#roomListDiv');
-const msgList = document.querySelector('ul');
-const nicknameForm = document.querySelector('#nickname');
-const msgForm = document.querySelector('#msg');
+const videoDom = document.getElementById('video');
+const muteBtn = document.getElementById('mute');
+const cameraBtn = document.getElementById('camera');
+const cameraSelect = document.getElementById('cameraSelect');
 
-let roomName;
-roomDiv.hidden = true;
+let myStream = null; // stream은 비디오, 오디오가 결합된 것
+let muted = false;
+let cameraOff = false;
 
-// ================= VIEW CONTROLLERS ====================
-const showRoom = () => {
-  roomDiv.hidden = false;
-  welcomeForm.hidden = true;
-}
+async function getCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(device => device.kind === 'videoinput');
+    cameras.forEach(camera => {
+      const option = document.createElement('option');
+      option.value = camera.deviceId;
+      option.innerText = camera.label;
+      cameraSelect.appendChild(option);
+    })
+    console.log(cameras)
 
-const addMessage = (message) => {
-  const msgList = roomDiv.querySelector('#msgList');
-  const li = document.createElement('li');
-  li.innerText = message;
-  msgList.appendChild(li);
-}
-
-const renderTitle = (count) => {
-  const roomTitle = document.querySelector('#roomTitle');
-  roomTitle.innerText = `Room${roomName} (${count})`
-}
-
-// ================= HANDLER ====================
-const handleRoomSubmit = (e) => {
-  e.preventDefault();
-  const input = welcomeForm.querySelector('input');
-  socket.emit(
-    'enter_room',
-    input.value,
-    showRoom
-  )
-  roomName = input.value;
-  input.value = '';
-}
-
-const handleNicknameSubmit = (e) => {
-  e.preventDefault();
-  const input = nicknameForm.querySelector('input');
-  socket.emit('nickname', input.value);
-  input.value = '';
-}
-
-const handleMsgSubmit = (e) => {
-  e.preventDefault();
-  const input = msgForm.querySelector('input');
-  // socket.emit('new_msg', input.value, (nickname, msg) => addMessage(`${nickname}: ${msg}`));
-  socket.emit('new_msg', roomName, input.value);
-  input.value = '';
-}
-
-// ================= EVENT LISTENERS ====================
-socket.on('welcome', (user, count) => {
-  renderTitle(count);
-  addMessage(`${user} joined!`);
-})
-
-socket.on('bye', (user, count) => {
-  renderTitle(count);
-  addMessage(`${user} left T T`)
-})
-
-socket.on('new_msg', (msg) => {
-  addMessage(msg);
-})
-
-socket.on('room_change', (rooms) => {
-  const roomList = roomListDiv.querySelector('ul');
-  roomList.innerHTML = '';
-  if(rooms.length === 0) {
-    return;
+  } catch (e) {
+    console.error(e)
   }
-  rooms.forEach(room => {
-    const li = document.createElement('li');
-    li.innerText = room;
-    roomList.appendChild(li);
-  })
-})
+}
 
-welcomeForm.addEventListener('submit', handleRoomSubmit);
-nicknameForm.addEventListener('submit', handleNicknameSubmit);
-msgForm.addEventListener('submit', handleMsgSubmit);
+async function getMedia() {
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    });
+    console.log(myStream);
+    videoDom.srcObject = myStream;
+    await getCameras();
+  } catch (e) {
+    console.error(e)
+  }
+}
+getMedia();
+
+const handleMuteClick = () => {
+  if (muted) {
+    muteBtn.innerText = 'Unmute';
+  } else {
+    muteBtn.innerText = 'Mute';
+  }
+  muted = !muted;
+  myStream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+}
+
+const handleCameraClick = () => {
+  if (cameraOff) {
+    cameraBtn.innerText = 'Turn camera off'
+  } else {
+    cameraBtn.innerText = 'Turn camera on'
+  }
+  cameraOff = !cameraOff;
+  myStream.getVideoTracks().forEach(track => track.enabled = !track.enabled);
+}
+
+muteBtn.addEventListener('click', handleMuteClick);
+cameraBtn.addEventListener('click', handleCameraClick);

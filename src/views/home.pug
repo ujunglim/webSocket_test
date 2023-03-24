@@ -9,21 +9,10 @@ html(lang="en")
         header
             h1 YOOM
         main
-            form#welcome
-                input(placeholder="room name", required, type="text")
-                button Enter Room
-            #room 
-                #roomListDiv
-                    h4 Opened Rooms:
-                    ul
-                h3#roomTitle
-                ul#msgList
-                form#nickname
-                    input(type="text" placeholder="Type your nickname" required)
-                    button Save
-                form#msg
-                    input(type="text" placeholder="Type a message", required)
-                    button Send
+            video#video(autoplay, playsinline, width="40" height="40") 
+            button#mute Mute
+            button#camera Turn camera off
+            select#cameraSelect
         footer Copyright Yujung. All right reserved.
         script(src="/socket.io/socket.io.js")
         script(src="../public/app.js")
