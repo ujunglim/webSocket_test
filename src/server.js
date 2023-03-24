@@ -1,7 +1,6 @@
 import express from 'express';
 import http from 'http';
-import {Server} from 'socket.io';
-import { instrument } from '@socket.io/admin-ui';
+import SocketIo from 'socket.io';
 
 const app = express();
 
@@ -12,60 +11,17 @@ app.get('/', (_, res) => res.render('home'));
 app.get('/*', (_, res) => res.redirect('/'));
 
 const httpServer = http.createServer(app); // express app으로부터 http서버생성
-// const io = SocketIO(httpServer);
-const io = new Server(httpServer, {
-  cors: {
-    origin: ["https://admin.socket.io"], // 이 url에서 로컬호스트에 엑세스
-    credentials: true
-  }
-});
+const io = SocketIo(httpServer);
 
-instrument(io, {
-  auth: false,
-  mode: "development",
-});
+io.on('connection', socket => {
+  socket.on('join_room', (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit('welcome')
+  })
 
-// get named-rooms
-const getPublicRooms = () => {
-  const { sockets: { adapter: { sids, rooms } } } = io;
-  const publicRooms = [];
-  rooms.forEach((_, key) => {
-    if (!sids.get(key)) {
-      publicRooms.push(key);
-    }
-  })
-  return publicRooms;
-}
-
-const countRoom = (roomName) => {
-  return io.sockets.adapter.rooms.get(roomName)?.size;
-}
-
-io.on('connection', (socket) => {
-  socket.nickname = 'Anonymous';
-  socket.onAny((event) => console.log(`Socket Event: ${event}`));
-
-  socket.on('enter_room', (roomName, showRoom) => {
-    socket.join(roomName); // 방에 들어감
-    showRoom();
-    io.to(roomName).emit('welcome', socket.nickname, countRoom(roomName)); // roomName방에 있는 모든 사람들한테 welcome이벤트를 날린다.(주의 socket이 아니라 io)
-    io.sockets.emit("room_change", getPublicRooms());
-  })
-  // before disconnect
-  socket.on('disconnecting', () => {
-    socket.rooms.forEach(room => io.to(room).emit('bye', socket.nickname, countRoom(room) - 1)); // 이 소켓이 있는 모든 방에 bye
-  })
-  // disconnected
-  socket.on('disconnect', () => {
-    io.sockets.emit("room_change", getPublicRooms());
-  })
-  // nickname
-  socket.on('nickname', (nickname) => {
-    socket.nickname = nickname;
-  })
-  // new_msg
-  socket.on('new_msg', (roomName, msg) => {
-    io.to(roomName).emit('new_msg', `${socket.nickname}: ${msg}`);
+  socket.on('offer', (offer, roomName) => {
+    socket.to(roomName).emit('offer', offer);
   })
 })
 
