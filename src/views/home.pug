@@ -14,10 +14,12 @@ html(lang="en")
                     input(placeholder="Enter Room name", required, type="text")
                     button Enter room
             #call
-                video#video(autoplay, playsinline, width="40" height="40") 
-                button#mute Mute
-                button#camera Turn camera off
-                select#cameraSelect
+                #myStream
+                    video#video(autoplay, playsinline, width="500" height="400") 
+                    button#mute Mute
+                    button#camera Turn camera off
+                    select#cameraSelect
+                video#peerStream(autoPlay, playsinline, width='500' height='400') 
         footer Copyright Yujung. All right reserved.
         script(src="/socket.io/socket.io.js")
         script(src="../public/app.js")
